@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "content_studio",
+  "project_id": "25aaca94-5a53-46f6-b91d-9539f234e52b"
+}
