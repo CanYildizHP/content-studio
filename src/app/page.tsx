@@ -1,66 +1,32 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from 'next/link';
+
+const PANELS = [
+  { href: '/thumbnail', label: 'Thumbnails', note: 'Generate brand-faithful 1200×630 thumbnails.', live: true },
+  { href: '/studios', label: 'Studios', note: 'Browse research-studio notebooks + dossiers.', live: true },
+  { href: '/outputs', label: 'Outputs', note: 'Browse finished pieces in the Brain vault.', live: true },
+  { href: '/runner', label: 'Runner', note: 'Trigger + watch skill runs.', live: true },
+];
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <header className="page-head">
+        <span className="page-head__kicker">content-studio · local</span>
+        <h1 className="page-head__title">The content cockpit.</h1>
+        <p className="page-head__sub">
+          One local surface for the pipeline: research → write → optimize → ship. Thumbnails are live;
+          the rest land in later phases.
+        </p>
+      </header>
+      <div className="home-grid">
+        {PANELS.map((p) => (
+          <Link key={p.href} href={p.href} className={`home-card${p.live ? '' : ' home-card--soon'}`}>
+            <span className="home-card__label">{p.label}</span>
+            <span className="home-card__note">{p.note}</span>
+            <span className="home-card__tag">{p.live ? 'open →' : 'soon'}</span>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }

@@ -1,0 +1,147 @@
+/* The brand thumbnail surface. Fixed 1200×630. All color/type comes from the
+   copied tokens; this file only does layout + the per-mode portrait treatment. */
+
+.thumb {
+  /* width/height come from the format via inline style */
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  font-family: var(--font-body);
+  background: var(--surface-ink);
+  color: var(--fg-on-ink-1);
+}
+.thumb--cream { background: var(--surface-cream); color: var(--fg-1); }
+/* portrait/square get a touch less side padding */
+.thumb[data-orient='portrait'] .thumb__col,
+.thumb[data-orient='square'] .thumb__col { padding: 72px 72px; }
+
+.thumb__col {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 72px 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* kicker */
+.thumb__kicker {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: var(--fg-4);
+}
+.thumb--cream .thumb__kicker { color: var(--fg-3); }
+
+/* title block */
+.thumb__body { display: flex; flex-direction: column; gap: 18px; }
+.thumb__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: var(--track-display);
+  line-height: 1.08;
+  color: var(--fg-on-ink-1);
+  max-width: 16ch;
+  text-wrap: balance;
+  font-size: calc(var(--title-size, 48px) * var(--title-scale, 1));
+}
+.thumb--cream .thumb__title { color: var(--fg-1); }
+/* land photo uses a narrow text column (portrait sits to the right) */
+.thumb[data-orient='land'].thumb--photo .thumb__title,
+.thumb[data-orient='land'].thumb--sketch .thumb__title,
+.thumb[data-orient='land'].thumb--color-image .thumb__title { max-width: 11ch; }
+/* full-bleed (square/portrait photo): title spans the width over the scrim */
+.thumb[data-fullbleed] .thumb__title { max-width: none; }
+
+/* keep the chromatic flourish from breaking between its per-letter spans */
+.thumb__title .brand-emphasis { white-space: nowrap; }
+
+.thumb__hot { color: var(--fg-orange-on-ink); }
+.thumb--cream .thumb__hot { color: var(--fg-orange-on-light); }
+
+.thumb__sub {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--fg-on-ink-2);
+  max-width: 52ch;
+}
+.thumb--cream .thumb__sub { color: var(--fg-3); }
+
+/* alignment — byline is intentionally excluded and stays at its fixed position */
+.thumb--align-center .thumb__col { align-items: center; text-align: center; }
+.thumb--align-center .thumb__body { align-items: center; }
+.thumb--align-center .thumb__title,
+.thumb--align-center .thumb__sub { margin-left: auto; margin-right: auto; }
+.thumb--align-center .thumb__byline { align-self: flex-start; }
+
+/* byline */
+.thumb__byline { display: flex; align-items: center; gap: 16px; }
+.thumb__byline-meta { display: flex; flex-direction: column; gap: 4px; }
+.thumb__name { font-size: 20px; font-weight: 600; color: var(--fg-on-ink-1); }
+.thumb__role { font-size: 16px; color: var(--fg-on-ink-2); }
+.thumb--cream .thumb__name { color: var(--fg-1); }
+.thumb--cream .thumb__role { color: var(--fg-3); }
+
+/* portrait column (photo / sketch) */
+.thumb__portrait {
+  flex: 0 0 456px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-left: 1px solid var(--line-on-ink-1);
+}
+.thumb--cream .thumb__portrait { border-left: 1px solid var(--line-1); }
+.thumb__portrait-img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
+}
+.thumb--photo .thumb__portrait-img { filter: grayscale(1) contrast(1.02); }
+.thumb--sketch .thumb__portrait-img { filter: url(#thumb-duotone) contrast(1.04); }
+.thumb--color-image .thumb__portrait-img { filter: none; }
+
+/* full-bleed portrait (square / portrait formats): photo fills the card, text
+   sits at the bottom over a scrim */
+.thumb[data-fullbleed] .thumb__portrait {
+  position: absolute; inset: 0;
+  flex: none; width: 100%; height: 100%;
+  border: none; z-index: 0;
+}
+.thumb__scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(14, 14, 14, 0) 22%,
+    rgba(14, 14, 14, 0.55) 56%,
+    rgba(14, 14, 14, 0.93) 100%);
+}
+.thumb--cream .thumb__scrim {
+  background: linear-gradient(180deg,
+    rgba(221, 219, 214, 0) 22%,
+    rgba(221, 219, 214, 0.6) 56%,
+    rgba(221, 219, 214, 0.95) 100%);
+}
+.thumb[data-fullbleed] .thumb__col {
+  position: relative; z-index: 2;
+  justify-content: flex-end;
+}
+
+/* the constant identity stamp */
+.thumb__star {
+  position: absolute;
+  right: 72px; bottom: 64px;
+  width: 72px; height: 72px;
+  z-index: 3;
+  background-color: var(--orange-500);
+  -webkit-mask: url('/Star.svg') no-repeat center / contain;
+  mask: url('/Star.svg') no-repeat center / contain;
+  transform: rotate(-12deg);
+}
+/* a touch larger on the wide 16:9 canvas */
+.thumb[data-format='x-landscape'] .thumb__star { width: 88px; height: 88px; right: 80px; bottom: 72px; }
+/* wider portrait column on x-landscape (1600px wide vs 1200px for web) */
+.thumb[data-format='x-landscape'] .thumb__portrait { flex-basis: 580px; }
+
+.thumb__defs { position: absolute; width: 0; height: 0; pointer-events: none; }

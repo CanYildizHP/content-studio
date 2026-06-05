@@ -1,0 +1,147 @@
+/* ==========================================================================
+   Brand design tokens — copied from can-yildiz.com (src/app/globals.css).
+   Keep in sync via scripts/sync-brand.mjs. Do not hand-edit token values here;
+   change them on the site and re-sync so the thumbnail stays brand-faithful.
+   ========================================================================== */
+
+:root {
+  --surface-cream:  #DDDBD6;
+  --surface-paper:  #E8E6E1;
+  --surface-bone:   #F4F2EE;
+  --surface-white:  #FFFFFF;
+  --surface-ink:    #0E0E0E;
+  --surface-char:   #1A1A1A;
+
+  --fg-1:           #0E0E0E;
+  --fg-2:           #2A2A2A;
+  --fg-3:           #5C5A55;
+  --fg-4:           #8A8780;
+  --fg-on-ink-1:    #F4F2EE;
+  --fg-on-ink-2:    #B8B4AC;
+  --fg-on-ink-3:    #8E8B83;
+  --fg-on-orange:   #0E0E0E;
+
+  --orange-500:     #FF1B00;
+  --orange-400:     #FF4F38;
+  --orange-600:     #D31700;
+  --orange-700:     #A01100;
+  --orange-100:     #FFD9D2;
+  --orange-tint:    rgba(255, 27, 0, 0.10);
+
+  --fg-orange-on-light: var(--orange-700);
+  --fg-orange-on-ink:   var(--orange-500);
+
+  --line-1:          rgba(14, 14, 14, 0.12);
+  --line-2:          rgba(14, 14, 14, 0.24);
+  --line-strong:     #0E0E0E;
+  --line-on-ink-1:   rgba(244, 242, 238, 0.14);
+  --line-on-ink-2:   rgba(244, 242, 238, 0.28);
+
+  --font-display: var(--font-space-grotesk), var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    var(--font-jetbrains-mono), "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --t-hero:        clamp(64px, 9vw, 144px);
+  --t-display-1:   clamp(48px, 6vw, 96px);
+  --t-display-2:   clamp(36px, 4.5vw, 64px);
+  --t-h1:          40px;
+  --t-h2:          28px;
+  --t-h3:          20px;
+  --t-h4:          17px;
+  --t-body-lg:     19px;
+  --t-body:        16px;
+  --t-body-sm:     14px;
+  --t-caption:     12px;
+  --t-overline:    11px;
+  --t-mono:        14px;
+
+  --w-regular: 400;
+  --w-medium:  500;
+  --w-semi:    600;
+  --w-bold:    700;
+
+  --lh-tight:  1.04;
+  --lh-snug:   1.16;
+  --lh-normal: 1.48;
+  --lh-loose:  1.62;
+
+  --track-tight:    -0.02em;
+  --track-display:  -0.025em;
+  --track-overline:  0.12em;
+
+  --s-1:  4px;  --s-2:  8px;  --s-3:  12px; --s-4:  16px; --s-5:  24px;
+  --s-6:  32px; --s-7:  48px; --s-8:  64px; --s-9:  96px; --s-10: 128px;
+
+  --r-0: 0px; --r-1: 2px; --r-2: 4px; --r-3: 8px; --r-pill: 999px;
+
+  --border-hair:   1px solid var(--line-1);
+  --border-rule:   1px solid var(--line-2);
+  --border-strong: 1px solid var(--line-strong);
+
+  --ease-standard: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --d-fast: 120ms; --d-base: 200ms; --d-slow: 320ms;
+}
+
+/* ---- Nabla chromatic palettes (for brand emphasis) ---------------------- */
+@font-palette-values --nabla-orange {
+  font-family: Nabla;
+  override-colors:
+    0 #FF1B00,  1 #D31700,  2 #A01100,  3 #FF4F38,
+    4 #FF1B00,  5 #D31700,  6 #A01100,  7 #FF4F38,
+    8 #FF1B00,  9 #D31700, 10 #A01100, 11 #FF4F38,
+   12 #FF1B00, 13 #D31700, 14 #A01100, 15 #FF4F38;
+}
+@font-palette-values --nabla-ink {
+  font-family: Nabla;
+  override-colors:
+    0 #0E0E0E,  1 #000000,  2 #1A1A1A,  3 #3A3835,
+    4 #0E0E0E,  5 #000000,  6 #1A1A1A,  7 #3A3835,
+    8 #0E0E0E,  9 #000000, 10 #1A1A1A, 11 #3A3835,
+   12 #0E0E0E, 13 #000000, 14 #1A1A1A, 15 #3A3835;
+}
+@font-palette-values --nabla-bone {
+  font-family: Nabla;
+  override-colors:
+    0 #F4F2EE,  1 #C8C5BE,  2 #B8B4AC,  3 #FFFFFF,
+    4 #F4F2EE,  5 #C8C5BE,  6 #B8B4AC,  7 #FFFFFF,
+    8 #F4F2EE,  9 #C8C5BE, 10 #B8B4AC, 11 #FFFFFF,
+   12 #F4F2EE, 13 #C8C5BE, 14 #B8B4AC, 15 #FFFFFF;
+}
+
+/* ---- Brand emphasis (the Nabla flourish) -------------------------------- */
+.brand-emphasis {
+  display: inline;
+  font-weight: 700;
+  color: var(--orange-500);
+  animation: none;
+  transform: none;
+}
+.brand-emphasis--ink  { color: var(--fg-1); }
+.brand-emphasis--bone { color: var(--fg-on-ink-1); }
+.brand-emphasis--chromatic {
+  font-family: var(--font-nabla, 'Nabla'), cursive;
+  font-palette: --nabla-orange;
+}
+.brand-emphasis--chromatic.brand-emphasis--ink  { font-palette: --nabla-ink; }
+.brand-emphasis--chromatic.brand-emphasis--bone { font-palette: --nabla-bone; }
+
+.brand-emphasis__letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.22em, 0) scale(0.96);
+  animation: brandEmphasisLetterIn 540ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--brand-emphasis-delay, 0ms) + (var(--letter-index, 0) * 65ms));
+  will-change: transform, opacity;
+}
+@keyframes brandEmphasisLetterIn {
+  0%   { opacity: 0; transform: translate3d(0, 0.22em, 0) scale(0.96); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* Still mode: when capturing a thumbnail we force the per-letter animation to
+   its end state so the screenshot is deterministic (no mid-animation frame). */
+[data-still] .brand-emphasis__letter {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
