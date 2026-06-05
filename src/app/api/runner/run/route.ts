@@ -7,6 +7,28 @@ import { BRAIN_PATH } from '@/lib/paths';
 
 const ALLOWED_SKILLS = new Set(['research', 'can-yildiz-writer', 'research-studio']);
 
+// Maps skills to their required Claude tools
+const SKILL_TOOLS: Record<string, string[]> = {
+  'research': ['web-search', 'web-fetch'],
+  'can-yildiz-writer': [],
+  'research-studio': ['web-search', 'web-fetch'],
+};
+
+function validateRequest(req: Request): { valid: boolean; error?: string } {
+  // Only allow in development
+  if (process.env.NODE_ENV === 'production') {
+    return { valid: false, error: 'Runner API not available in production' };
+  }
+
+  // Require secret header for CSRF protection
+  const secret = req.headers.get('x-runner-secret');
+  if (secret !== process.env.RUNNER_SECRET && process.env.RUNNER_SECRET) {
+    return { valid: false, error: 'Unauthorized' };
+  }
+
+  return { valid: true };
+}
+
 interface RunBody {
   skill: string;
   args: {
@@ -58,6 +80,11 @@ function extractEventText(event: Record<string, unknown>): string | null {
 
 export async function POST(req: Request) {
   try {
+    const validation = validateRequest(req);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 403 });
+    }
+
     const body = await req.json() as RunBody;
     const { skill, args } = body;
 
@@ -137,15 +164,20 @@ export async function POST(req: Request) {
     // --print: non-interactive, produces stdout output (conversational mode does not in piped env)
     // --output-format stream-json --verbose: NDJSON events stream in real-time as Claude works
     // --include-partial-messages: text appears token-by-token instead of after full response
-    // --dangerously-skip-permissions: prevents permission prompts from blocking in non-TTY mode
+    // --allowedTools: restrict to only necessary tools per skill (replaces --dangerously-skip-permissions)
     // stdio 'ignore' for stdin: equivalent to < /dev/null, avoids the 3s "no stdin data" warning
-    const proc = spawn('claude', [
+    const tools = SKILL_TOOLS[skill] || [];
+    const spawnArgs = [
       '--print', prompt,
       '--output-format', 'stream-json',
       '--verbose',
       '--include-partial-messages',
-      '--dangerously-skip-permissions',
-    ], {
+    ];
+    if (tools.length > 0) {
+      spawnArgs.push('--allowedTools', tools.join(','));
+    }
+
+    const proc = spawn('claude', spawnArgs, {
       shell: false,
       cwd: BRAIN_PATH,
       stdio: ['ignore', 'pipe', 'pipe'],

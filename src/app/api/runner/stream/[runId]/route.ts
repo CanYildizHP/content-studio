@@ -2,10 +2,33 @@ import { runnerStore } from '@/lib/runner-store';
 
 export const dynamic = 'force-dynamic';
 
+function validateRequest(req: Request): { valid: boolean; error?: string } {
+  // Only allow in development
+  if (process.env.NODE_ENV === 'production') {
+    return { valid: false, error: 'Runner API not available in production' };
+  }
+
+  // Require secret header for CSRF protection
+  const secret = req.headers.get('x-runner-secret');
+  if (secret !== process.env.RUNNER_SECRET && process.env.RUNNER_SECRET) {
+    return { valid: false, error: 'Unauthorized' };
+  }
+
+  return { valid: true };
+}
+
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ runId: string }> }
 ) {
+  const validation = validateRequest(req);
+  if (!validation.valid) {
+    return new Response(JSON.stringify({ error: validation.error }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const { runId } = await params;
 
   const encoder = new TextEncoder();
