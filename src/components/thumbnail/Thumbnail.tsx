@@ -21,6 +21,7 @@ import {
 const TITLE_SCALE: Record<ThumbnailFormat, number> = {
   web: 1,
   'li-square': 1.08,
+  'li-carousel': 1.08,
   'li-portrait': 1.14,
   'x-landscape': 1.26,
 };

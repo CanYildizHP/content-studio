@@ -7,7 +7,7 @@ import { PORTRAIT_VALUES, DEFAULT_PORTRAIT } from './portraits';
 export type ThumbnailMode = 'type' | 'photo' | 'sketch' | 'color-image';
 export type ThumbnailVariant = 'ink' | 'cream';
 export type EmphasisStyle = 'plain' | 'chromatic';
-export type ThumbnailFormat = 'web' | 'li-square' | 'li-portrait' | 'x-landscape';
+export type ThumbnailFormat = 'web' | 'li-square' | 'li-carousel' | 'li-portrait' | 'x-landscape';
 export type Orient = 'land' | 'square' | 'portrait';
 
 export interface FormatSpec {
@@ -23,8 +23,9 @@ export interface FormatSpec {
 // NOTE: capture.mjs keeps a parallel FORMAT_DIMS map — keep the numbers in sync.
 export const FORMATS: FormatSpec[] = [
   { id: 'web',          label: 'Web / OG',        w: 1200, h: 630,  ratio: '1.91:1', serves: 'website hero · LinkedIn link-share · X summary card' },
-  { id: 'li-square',    label: 'LinkedIn square', w: 1200, h: 1200, ratio: '1:1',    serves: 'LinkedIn single image post' },
-  { id: 'li-portrait',  label: 'Portrait 4:5',    w: 1080, h: 1350, ratio: '4:5',    serves: 'LinkedIn portrait + carousel page · X portrait' },
+  { id: 'li-square',    label: 'LinkedIn square',   w: 1200, h: 1200, ratio: '1:1',    serves: 'LinkedIn single image post' },
+  { id: 'li-carousel',  label: 'LinkedIn carousel', w: 1080, h: 1080, ratio: '1:1',    serves: 'LinkedIn carousel slide (document post)' },
+  { id: 'li-portrait',  label: 'Portrait 4:5',      w: 1080, h: 1350, ratio: '4:5',    serves: 'LinkedIn portrait carousel slide · X portrait' },
   { id: 'x-landscape',  label: 'X in-stream',     w: 1600, h: 900,  ratio: '16:9',   serves: 'X/Twitter in-stream image' },
 ];
 export const FORMAT_BY_ID: Record<string, FormatSpec> = Object.fromEntries(FORMATS.map((f) => [f.id, f]));

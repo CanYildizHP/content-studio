@@ -18,6 +18,7 @@ const DEFAULTS = {
 export const FORMAT_DIMS = {
   web: { w: 1200, h: 630 },
   'li-square': { w: 1200, h: 1200 },
+  'li-carousel': { w: 1080, h: 1080 },
   'li-portrait': { w: 1080, h: 1350 },
   'x-landscape': { w: 1600, h: 900 },
 };
