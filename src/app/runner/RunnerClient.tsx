@@ -36,6 +36,26 @@ const INTAKE: Record<Skill, IntakeQuestion[]> = {
   ],
 };
 
+// Text outcomes the writer/studio skills can produce. Each id doubles as the
+// deliverable filename the skill writes (<id>.md), which the output editor then
+// surfaces as its own editable tab.
+interface Outcome {
+  id: string;
+  label: string;
+  hint: string;
+}
+
+const OUTCOMES: Outcome[] = [
+  { id: 'blog-post', label: 'Article / blog post', hint: 'Long-form canonical piece' },
+  { id: 'linkedin-post', label: 'LinkedIn post', hint: 'Hook + spare body + one takeaway' },
+  { id: 'linkedin-first-comment-hook', label: 'LinkedIn first-comment hook', hint: 'Short hook that drives clicks to the link in the first comment' },
+  { id: 'x-thread', label: 'X / Twitter thread', hint: 'Numbered thread' },
+  { id: 'newsletter', label: 'Newsletter section', hint: 'Subject line + intro + spine' },
+];
+
+// Skills that accept the text-outcomes picker.
+const OUTCOME_SKILLS: Skill[] = ['can-yildiz-writer', 'research-studio'];
+
 type FormValues = Record<string, string>;
 
 export default function RunnerClient() {
@@ -43,6 +63,22 @@ export default function RunnerClient() {
   const [skill, setSkill] = useState<Skill>('research');
   const [form, setForm] = useState<FormValues>({ topic: '', slug: '', language: 'en', purpose: '' });
   const [intake, setIntake] = useState<FormValues>({});
+  const [outcomes, setOutcomes] = useState<string[]>(['blog-post']);
+  const [outcomeCustom, setOutcomeCustom] = useState('');
+
+  const showOutcomes = OUTCOME_SKILLS.includes(skill);
+
+  function toggleOutcome(id: string) {
+    setOutcomes((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
+  // Comma-joined list of selected outcome ids plus any custom outcome, e.g.
+  // "blog-post, linkedin-first-comment-hook, x-thread, custom: a press one-liner".
+  function composeOutcomes(): string {
+    const parts = [...outcomes];
+    if (outcomeCustom.trim()) parts.push(`custom: ${outcomeCustom.trim()}`);
+    return parts.join(', ');
+  }
 
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [output, setOutput] = useState<string[]>([]);
@@ -109,6 +145,7 @@ export default function RunnerClient() {
       args: {
         ...form,
         ...intake,
+        ...(showOutcomes ? { outcomes: composeOutcomes() } : {}),
       },
     };
 
@@ -184,6 +221,8 @@ export default function RunnerClient() {
     setOutput([]);
     setActiveRunId(null);
     setIntake({});
+    setOutcomes(['blog-post']);
+    setOutcomeCustom('');
   }
 
   const statusLabel =
@@ -201,7 +240,7 @@ export default function RunnerClient() {
             {(['research', 'can-yildiz-writer', 'research-studio'] as Skill[]).map((s) => (
               <label key={s} className={`skill-pill${skill === s ? ' skill-pill--active' : ''}`}>
                 <input type="radio" name="skill" value={s} checked={skill === s}
-                  onChange={() => { setSkill(s); setIntake({}); }} />
+                  onChange={() => { setSkill(s); setIntake({}); setOutcomes(['blog-post']); setOutcomeCustom(''); }} />
                 /{s}
               </label>
             ))}
@@ -317,6 +356,39 @@ export default function RunnerClient() {
                 {q.hint && <span className="field__hint">{q.hint}</span>}
               </label>
             ))}
+
+            {showOutcomes && (
+              <fieldset className="field outcomes">
+                <span className="field__label">Expected text outcomes</span>
+                <span className="field__hint">
+                  Which pieces should this run produce? Each becomes its own editable output.
+                </span>
+                <div className="outcomes__grid">
+                  {OUTCOMES.map((o) => (
+                    <label
+                      key={o.id}
+                      className={`outcome-pill${outcomes.includes(o.id) ? ' outcome-pill--active' : ''}`}
+                      title={o.hint}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={outcomes.includes(o.id)}
+                        onChange={() => toggleOutcome(o.id)}
+                      />
+                      <span className="outcome-pill__label">{o.label}</span>
+                      <span className="outcome-pill__hint">{o.hint}</span>
+                    </label>
+                  ))}
+                </div>
+                <input
+                  className="field__input"
+                  type="text"
+                  value={outcomeCustom}
+                  onChange={(e) => setOutcomeCustom(e.target.value)}
+                  placeholder="Custom outcome (optional) — e.g. a one-line press blurb"
+                />
+              </fieldset>
+            )}
           </div>
 
           <div className="runner-form__actions">

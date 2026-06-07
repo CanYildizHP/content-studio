@@ -49,6 +49,30 @@
 .ed__btn:disabled { opacity: 0.6; cursor: default; }
 .ed__status { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
 
+.ed__btn--ghost {
+  color: var(--fg-1); background: var(--surface-white); border: var(--border-rule);
+}
+.ed__btn--ghost:hover:not(:disabled) { background: var(--surface-paper); border-color: var(--line-strong); }
+
+/* Higgsfield AI generation panel */
+.ed__gen {
+  padding: var(--s-3); border: var(--border-rule); border-radius: var(--r-2);
+  background: var(--surface-paper);
+}
+.ed__gen > summary {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: var(--track-overline);
+  text-transform: uppercase; color: var(--fg-orange-on-light); cursor: pointer;
+}
+.ed__gen[open] > summary { margin-bottom: var(--s-3); }
+.ed__gen-prompt {
+  font-family: var(--font-body); font-size: var(--t-body-sm); color: var(--fg-1);
+  background: var(--surface-white); border: var(--border-rule); border-radius: var(--r-2);
+  padding: 9px 10px; width: 100%; resize: vertical; min-height: 64px;
+}
+.ed__gen-prompt:focus { outline: none; border-color: var(--line-strong); }
+.ed__gen-actions { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); }
+.ed__gen-hint { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); line-height: 1.4; }
+
 .ed__contract { margin-top: var(--s-2); }
 .ed__contract summary {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: var(--track-overline);

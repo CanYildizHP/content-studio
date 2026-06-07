@@ -45,6 +45,8 @@ interface RunBody {
     direction?: string;
     proofPoints?: string;
     constraints?: string;
+    // expected text outcomes — can-yildiz-writer & research-studio
+    outcomes?: string;
     // intake fields — research-studio
     deliverables?: string;
     material?: string;
@@ -94,7 +96,7 @@ export async function POST(req: Request) {
 
     // Validate context fields
     const contextFields = [args.purpose, args.audience, args.angle, args.sources,
-      args.direction, args.proofPoints, args.constraints, args.deliverables, args.material];
+      args.direction, args.proofPoints, args.constraints, args.deliverables, args.material, args.outcomes];
     for (const f of contextFields) {
       if (f !== undefined && !isValidContextArg(f)) {
         return NextResponse.json({ error: 'Invalid context field' }, { status: 400 });
@@ -129,6 +131,7 @@ export async function POST(req: Request) {
 
       prompt = `/can-yildiz-writer ${slug}`;
       if (context) prompt += ` --direction ${context}`;
+      if (args.outcomes?.trim()) prompt += ` --outcomes ${args.outcomes.trim()}`;
       if (args.language === 'de') prompt += ` --lang de`;
 
     } else {
@@ -145,6 +148,7 @@ export async function POST(req: Request) {
       prompt = `/research-studio ${topic} --depth ${depth} --auto-confirm`;
       if (focus) prompt += ` --focus ${focus}`;
       if (args.deliverables?.trim()) prompt += ` --deliverables ${args.deliverables.trim()}`;
+      if (args.outcomes?.trim()) prompt += ` --outcomes ${args.outcomes.trim()}`;
       if (args.material?.trim()) prompt += ` --material ${args.material.trim()}`;
     }
 

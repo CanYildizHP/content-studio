@@ -4,13 +4,13 @@ import { marked } from 'marked';
 import { safeHtml } from '@/lib/sanitize';
 import OutputDetail from './OutputDetail';
 
-interface Variant { name: string; content: string }
+interface OutputDoc { name: string; file: string; content: string; primary?: boolean }
 interface OutputDetailData {
   slug: string;
-  article: string;
-  variants: Variant[];
+  documents: OutputDoc[];
   geoReport: string | null;
   thumbnailPath: string | null;
+  purpose?: string;
 }
 
 async function getOutput(slug: string): Promise<OutputDetailData | null> {
@@ -30,12 +30,13 @@ export default async function OutputDetailPage({ params }: { params: Promise<{ s
   if (!output) notFound();
 
   // All markdown → HTML conversion and sanitization happens here (server-side)
-  const articleHtml = safeHtml(await marked(output.article));
-  const variantsWithHtml = await Promise.all(
-    output.variants.map(async (v) => ({
-      name: v.name,
-      html: safeHtml(await marked(v.content)),
-      content: v.content,
+  const documents = await Promise.all(
+    output.documents.map(async (d) => ({
+      name: d.name,
+      file: d.file,
+      html: safeHtml(await marked(d.content)),
+      content: d.content,
+      primary: d.primary ?? false,
     }))
   );
   const geoReportHtml = output.geoReport
@@ -53,11 +54,10 @@ export default async function OutputDetailPage({ params }: { params: Promise<{ s
 
       <OutputDetail
         slug={slug}
-        articleHtml={articleHtml}
-        articleRaw={output.article}
-        variants={variantsWithHtml}
+        documents={documents}
         geoReportHtml={geoReportHtml}
         thumbnailPath={output.thumbnailPath}
+        purpose={output.purpose ?? ''}
       />
     </>
   );

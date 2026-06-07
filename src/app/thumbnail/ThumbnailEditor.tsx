@@ -32,6 +32,10 @@ export default function ThumbnailEditor() {
 
   const [uploaded, setUploaded] = useState<{ value: string; label: string }[]>([]);
 
+  // Higgsfield AI image generation (the "hybrid AI-image + HTML" carousel workflow).
+  const [prompt, setPrompt] = useState('');
+  const [genBusy, setGenBusy] = useState(false);
+
   const set = <K extends keyof ThumbnailProps>(k: K, v: ThumbnailProps[K]) => setP((s) => ({ ...s, [k]: v }));
   const setByline = (k: 'name' | 'role', v: string) => setP((s) => ({ ...s, byline: { ...s.byline, [k]: v } }));
   const needsPortrait = p.mode !== 'type';
@@ -53,6 +57,29 @@ export default function ThumbnailEditor() {
       setStatus(err instanceof Error ? err.message : 'upload error');
     } finally {
       e.target.value = '';
+    }
+  }
+
+  async function generate() {
+    if (!prompt.trim()) return;
+    setGenBusy(true);
+    setStatus('generating with Higgsfield…');
+    try {
+      const res = await fetch('/api/thumbnail/generate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'generation failed');
+      setUploaded((u) => [{ value: data.path, label: data.label || '✦ generated' }, ...u]);
+      // drop the generated image straight in as a full-color background/portrait
+      setP((s) => ({ ...s, portrait: data.path, mode: 'color-image' }));
+      setStatus('generated ✓');
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'generation error');
+    } finally {
+      setGenBusy(false);
     }
   }
 
@@ -151,6 +178,27 @@ export default function ThumbnailEditor() {
         <Field label="Upload photo">
           <input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={onUpload} disabled={!needsPortrait} />
         </Field>
+
+        <details className="ed__gen" open>
+          <summary>✦ Generate image with Higgsfield (AI)</summary>
+          <Field label="Image prompt">
+            <textarea
+              className="ed__gen-prompt"
+              rows={3}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="e.g. cinematic close-up portrait, dramatic rim light, deep navy backdrop, editorial, 1:1"
+            />
+          </Field>
+          <div className="ed__gen-actions">
+            <button type="button" className="ed__btn ed__btn--ghost" onClick={generate} disabled={genBusy || !prompt.trim()}>
+              {genBusy ? 'Generating…' : 'Generate ✦'}
+            </button>
+            <span className="ed__gen-hint">
+              Runs the Higgsfield CLI, saves to /uploads, and drops it in as a color background.
+            </span>
+          </div>
+        </details>
 
         <Field label="Text alignment">
           <select value={p.align} onChange={(e) => set('align', e.target.value as 'left' | 'center')}>

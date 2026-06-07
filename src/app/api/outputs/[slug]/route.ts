@@ -6,10 +6,16 @@ import { isValidSlug, assertInsideDir } from '@/lib/validate';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
 
+export interface OutputDoc {
+  name: string;          // human label for the tab
+  file: string;          // PATCH save target: "doc/<basename>" or "variant/<name>"
+  content: string;       // raw markdown
+  primary?: boolean;     // the canonical/article-like doc (default tab)
+}
+
 export interface OutputDetail {
   slug: string;
-  article: string;
-  variants: { name: string; content: string }[];
+  documents: OutputDoc[];
   geoReport: string | null;
   thumbnailPath: string | null;
 }
@@ -20,6 +26,38 @@ function findOutputFolder(slug: string): string | null {
   const direct = path.join(outputDir, slug);
   if (fs.existsSync(direct)) return direct;
   return null;
+}
+
+/** "linkedin-first-comment-hook" -> "Linkedin first comment hook" */
+function humanize(basename: string): string {
+  const spaced = basename.replace(/[-_]+/g, ' ').trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Pick the canonical/article-like doc: slug match, then blog-post/article/index, else first. */
+function choosePrimary(basenames: string[], slug: string): string | undefined {
+  if (!basenames.length) return undefined;
+  const prefer = [slug, 'blog-post', 'article', 'index'];
+  for (const p of prefer) {
+    if (basenames.includes(p)) return p;
+  }
+  return basenames[0];
+}
+
+const MAX_PURPOSE = 2000;
+
+/** Per-output sidecar metadata (e.g. the piece's purpose/intent that anchors AI
+ *  rewrites). Stored as `_meta.json`, which is invisible to the documents list
+ *  since that only scans `.md` files. */
+function readMeta(folderPath: string): { purpose: string } {
+  const metaPath = path.join(folderPath, '_meta.json');
+  if (fs.existsSync(metaPath)) {
+    try {
+      const m = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+      return { purpose: typeof m?.purpose === 'string' ? m.purpose : '' };
+    } catch { /* corrupt sidecar — treat as empty */ }
+  }
+  return { purpose: '' };
 }
 
 export async function GET(
@@ -38,19 +76,41 @@ export async function GET(
     if (!folderPath) return NextResponse.json({ error: 'Output not found' }, { status: 404 });
     assertInsideDir(folderPath, outputRoot);
 
-    const folderFiles = fs.readdirSync(folderPath);
-    const articleFile = folderFiles.find((f) => f.endsWith('.md'));
-    if (!articleFile) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
-    const articlePath = path.join(folderPath, articleFile);
+    // Every top-level .md (except geo-report) is an editable document — not just
+    // the first one. This surfaces all skill deliverables (blog-post, linkedin-post,
+    // linkedin-hooks, x-thread, …) as their own editable tabs.
+    const topLevelBasenames = fs.readdirSync(folderPath)
+      .filter((f) => f.endsWith('.md') && f !== 'geo-report.md')
+      .map((f) => f.replace(/\.md$/, ''))
+      .filter((b) => isValidSlug(b))
+      .sort();
 
-    const article = fs.readFileSync(articlePath, 'utf-8');
+    if (!topLevelBasenames.length) {
+      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    }
 
-    const variants: { name: string; content: string }[] = [];
+    const primary = choosePrimary(topLevelBasenames, slug);
+    // Primary first, then the rest alphabetically.
+    const ordered = [primary, ...topLevelBasenames.filter((b) => b !== primary)].filter(Boolean) as string[];
+
+    const documents: OutputDoc[] = ordered.map((base) => ({
+      name: humanize(base),
+      file: `doc/${base}`,
+      content: fs.readFileSync(path.join(folderPath, `${base}.md`), 'utf-8'),
+      primary: base === primary,
+    }));
+
+    // Variants subfolder — appended after the top-level docs.
     const variantsDir = path.join(folderPath, 'variants');
     if (fs.existsSync(variantsDir)) {
       for (const f of fs.readdirSync(variantsDir)) {
         if (f.endsWith('.md') && isValidSlug(f.replace('.md', ''))) {
-          variants.push({ name: f.replace('.md', ''), content: fs.readFileSync(path.join(variantsDir, f), 'utf-8') });
+          const name = f.replace('.md', '');
+          documents.push({
+            name: humanize(name),
+            file: `variant/${name}`,
+            content: fs.readFileSync(path.join(variantsDir, f), 'utf-8'),
+          });
         }
       }
     }
@@ -67,7 +127,9 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({ slug, article, variants, geoReport, thumbnailPath });
+    const { purpose } = readMeta(folderPath);
+
+    return NextResponse.json({ slug, documents, geoReport, thumbnailPath, purpose });
   } catch (err) {
     console.error('[api/outputs/[slug] GET]', err);
     return NextResponse.json({ error: 'Failed to read output' }, { status: 500 });
@@ -96,11 +158,32 @@ export async function PATCH(
     if (!folderPath) return NextResponse.json({ error: 'Output not found' }, { status: 404 });
     assertInsideDir(folderPath, outputRoot);
 
+    // Purpose/intent is metadata, not a deliverable — store it in the JSON sidecar.
+    if (file === 'purpose') {
+      if (content.length > MAX_PURPOSE) {
+        return NextResponse.json({ error: `purpose too long (max ${MAX_PURPOSE})` }, { status: 413 });
+      }
+      const metaPath = path.join(folderPath, '_meta.json');
+      const meta = readMeta(folderPath);
+      meta.purpose = content;
+      const tmpPath = path.join(tmpdir(), `cs-meta-${randomBytes(8).toString('hex')}.tmp`);
+      fs.writeFileSync(tmpPath, JSON.stringify(meta, null, 2), 'utf-8');
+      fs.renameSync(tmpPath, metaPath);
+      return NextResponse.json({ ok: true });
+    }
+
     let targetPath: string;
     if (file === 'article') {
-      // Resolve to the actual .md file that GET reads, not a hardcoded name.
+      // Legacy target — resolve to the actual first .md file. New clients use doc/<basename>.
       const existingMd = fs.readdirSync(folderPath).find((f) => f.endsWith('.md'));
       targetPath = path.join(folderPath, existingMd ?? 'article.md');
+    } else if (file.startsWith('doc/')) {
+      const base = file.slice('doc/'.length);
+      if (!isValidSlug(base)) {
+        return NextResponse.json({ error: 'Invalid document name' }, { status: 400 });
+      }
+      targetPath = path.join(folderPath, `${base}.md`);
+      assertInsideDir(targetPath, outputRoot);
     } else if (file.startsWith('variant/')) {
       const variantName = file.slice('variant/'.length);
       if (!isValidSlug(variantName)) {

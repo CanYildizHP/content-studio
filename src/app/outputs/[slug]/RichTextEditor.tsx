@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Markdown } from 'tiptap-markdown';
+import RewriteBubbleMenu from './RewriteBubbleMenu';
 
 interface RichTextEditorProps {
   initialMarkdown: string;
@@ -12,6 +15,10 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ initialMarkdown, onChange }: RichTextEditorProps) {
+  // Keep the rewrite bubble menu visible while its panel is open, even though
+  // clicking into the guidance input blurs the editor and empties the selection.
+  const [rewriteOpen, setRewriteOpen] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -43,6 +50,14 @@ export default function RichTextEditor({ initialMarkdown, onChange }: RichTextEd
 
   return (
     <div className="rich-editor">
+      <BubbleMenu
+        editor={editor}
+        pluginKey="rewriteMenu"
+        updateDelay={100}
+        shouldShow={({ state, from, to }) => rewriteOpen || (from !== to && !state.selection.empty)}
+      >
+        <RewriteBubbleMenu editor={editor} onPanelOpenChange={setRewriteOpen} />
+      </BubbleMenu>
       <div className="rich-editor__toolbar">
         <button
           type="button"
