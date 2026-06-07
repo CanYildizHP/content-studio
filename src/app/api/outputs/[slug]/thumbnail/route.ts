@@ -14,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid slug' }, { status: 400 });
   }
 
-  const outputRoot = brainPath('output');
+  const outputRoot = brainPath('research', 'deliverables');
   const folderPath = path.join(outputRoot, slug);
 
   try {

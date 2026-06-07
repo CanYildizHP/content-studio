@@ -2,6 +2,7 @@
 
 import { useReducer, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import RichTextEditor from './RichTextEditor';
 
 interface Variant {
   name: string;
@@ -176,11 +177,10 @@ export default function OutputDetail({
 
       <div className="tab-content">
         {editMode && canEdit ? (
-          <textarea
-            className="edit-area"
-            value={editContent}
-            onChange={(e) => dispatch({ type: 'CHANGE', content: e.target.value })}
-            spellCheck
+          <RichTextEditor
+            key={activeTab}
+            initialMarkdown={editContent}
+            onChange={(md) => dispatch({ type: 'CHANGE', content: md })}
           />
         ) : (
           /* html is sanitized server-side in page.tsx before being passed here */

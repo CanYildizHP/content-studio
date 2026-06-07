@@ -15,7 +15,7 @@ export interface OutputDetail {
 }
 
 function findOutputFolder(slug: string): string | null {
-  const outputDir = brainPath('output');
+  const outputDir = brainPath('research', 'deliverables');
   if (!fs.existsSync(outputDir)) return null;
   const direct = path.join(outputDir, slug);
   if (fs.existsSync(direct)) return direct;
@@ -33,13 +33,15 @@ export async function GET(
   }
 
   try {
-    const outputRoot = brainPath('output');
+    const outputRoot = brainPath('research', 'deliverables');
     const folderPath = findOutputFolder(slug);
     if (!folderPath) return NextResponse.json({ error: 'Output not found' }, { status: 404 });
     assertInsideDir(folderPath, outputRoot);
 
-    const articlePath = path.join(folderPath, 'article.md');
-    if (!fs.existsSync(articlePath)) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    const folderFiles = fs.readdirSync(folderPath);
+    const articleFile = folderFiles.find((f) => f.endsWith('.md'));
+    if (!articleFile) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    const articlePath = path.join(folderPath, articleFile);
 
     const article = fs.readFileSync(articlePath, 'utf-8');
 
@@ -89,14 +91,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Missing file or content' }, { status: 400 });
     }
 
-    const outputRoot = brainPath('output');
+    const outputRoot = brainPath('research', 'deliverables');
     const folderPath = findOutputFolder(slug);
     if (!folderPath) return NextResponse.json({ error: 'Output not found' }, { status: 404 });
     assertInsideDir(folderPath, outputRoot);
 
     let targetPath: string;
     if (file === 'article') {
-      targetPath = path.join(folderPath, 'article.md');
+      // Resolve to the actual .md file that GET reads, not a hardcoded name.
+      const existingMd = fs.readdirSync(folderPath).find((f) => f.endsWith('.md'));
+      targetPath = path.join(folderPath, existingMd ?? 'article.md');
     } else if (file.startsWith('variant/')) {
       const variantName = file.slice('variant/'.length);
       if (!isValidSlug(variantName)) {

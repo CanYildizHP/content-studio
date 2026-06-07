@@ -25,7 +25,7 @@ function extractTitle(articlePath: string): string {
 
 export async function GET() {
   try {
-    const outputDir = brainPath('output');
+    const outputDir = brainPath('research', 'deliverables');
     if (!fs.existsSync(outputDir)) {
       return NextResponse.json([]);
     }
@@ -37,8 +37,10 @@ export async function GET() {
       if (!item.isDirectory()) continue;
       const slug = item.name;
       const folderPath = path.join(outputDir, slug);
-      const articlePath = path.join(folderPath, 'article.md');
-      if (!fs.existsSync(articlePath)) continue;
+      const files = fs.readdirSync(folderPath);
+      const articleFile = files.find((f) => f.endsWith('.md'));
+      if (!articleFile) continue;
+      const articlePath = path.join(folderPath, articleFile);
 
       const dateMatch = slug.match(/^(\d{4}-\d{2}-\d{2})/);
       const date = dateMatch ? dateMatch[1] : fs.statSync(folderPath).mtime.toISOString().slice(0, 10);
